@@ -1,0 +1,41 @@
+<?php
+
+namespace Entity;
+
+use PDO;
+
+class Connection {
+    protected $host = '{{host}}';
+    protected $dbname = '{{dbname}}';
+    protected $username = '{{username}}';
+    protected $password = '{{password}}';
+    protected $db = null;
+    protected static $instance = null;
+
+    public function __construct()
+    {
+        $this->db = new PDO("mysql:host={$this->host};dbname={$this->dbname}", $this->username, $this->password);
+    }
+
+    /**
+     * Retrieves an array of the used Entity
+     * @param string $sql
+     * @param string $className
+     * @return array[Entity]
+     */
+    public function getAll(string $sql, string $className) {
+        $stmt = $this->db->query($sql, PDO::FETCH_CLASS, $className);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Limit the connections created to one
+     * @return Connection|null
+     */
+    public static function getInstance()
+    {
+        if (self::$instance == null) self::$instance = new self();
+
+        return self::$instance;
+    }
+}

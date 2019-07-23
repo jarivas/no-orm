@@ -1,0 +1,94 @@
+<?php
+
+namespace Entity;
+
+{{class_description}}
+class {{class_name}}
+{
+    protected static $tableName = '{{table_name}}';
+
+{{constants}}
+
+    protected static $pascalCasedProperties = {{pascal_properties}}
+
+{{properties}}
+
+    public function __call($name, $arguments)
+    {
+        $methodType = substr($name, 0 , 3);
+
+        if(!in_array($methodType, self::$callAllowedTypes))
+            throw new Exception('The method do not exists');
+
+        $property = substr($name, 3);
+
+        if (!in_array($property, self::$pascalCasedProperties))
+            throw new Exception('The property that you are trying to access do not exists');
+
+        $property = self::$pascalCasedProperties[$property];
+
+        if ($methodType === 'get') return $this->$property;
+
+        $this->$property = $arguments[0];
+
+        return $this;
+    }
+
+    public static function generateProjection() : array {
+        $projection = [];
+
+        foreach (self::$pascalCasedProperties as $alias => $col)
+            $projection[] = "$col as $alias";
+
+
+        return $projection;
+    }
+
+    public static function generateSelect(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0)
+    {
+        $tableName = self::$tableName;
+        $sql = 'SELECT ';
+
+        foreach ($projection as $col)
+            $sql .= $col . ', ';
+
+        $sql = substr_replace($sql," FROM {$tableName}", strlen($sql) - 3);
+
+        if (count($where)) {
+            $sql .= ' WHERE 1';
+
+            foreach ($where as $condition)
+                $sql .= ' ' . $condition['operator'] . ' ' . $condition['condition'];
+        }
+
+        if (strlen($group))
+            $sql .= ' GROUP BY ' . $group;
+
+        if (count($having)) {
+            $sql .= ' HAVING 1';
+
+            foreach ($having as $condition)
+                $sql .= ' ' . $condition['operator'] . ' ' . $condition['condition'];
+        }
+
+        if (strlen($order))
+            $sql .= ' ORDER BY ' . $order;
+
+        $sql .= sprintf(' LIMIT %d OFFSET %d', $limit, $offset);
+
+        return $sql;
+    }
+
+    public static function getAll(array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0)
+    {
+        return self::getAllProjection(self::generateProjection(), $where, $group, $having, $order, $limit, $offset);
+    }
+
+    public static function getAllProjection(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0)
+    {
+        $sql = self::generateSelect($projection, $where, $group, $having, $order, $limit, $offset);
+        $connection = Connection::getInstance();
+
+        return $connection->getAll($sql, __CLASS__);
+    }
+}
