@@ -12,6 +12,7 @@ class {{class_name}}
 
     protected static $pascalCasedProperties = {{pascal_properties}}
     protected static $snakeCasedProperties = {{snake_properties}}
+
     public function __call($name, $arguments)
     {
         $methodType = substr($name, 0 , 3);
@@ -32,6 +33,20 @@ class {{class_name}}
         return $this;
     }
 
+    protected static function generateConditions(string $type, array $conditions) : string
+    {
+        $sql = '';
+
+        if (count($conditions)) {
+            $sql .= " $type 1";
+
+            foreach ($conditions as $condition)
+                $sql .= ' ' . $condition['operator'] . ' ' . $condition['condition'];
+        }
+
+        return $sql;
+    }
+
     public static function generateSelect(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : string
     {
         $tableName = self::$tableName;
@@ -42,22 +57,12 @@ class {{class_name}}
 
         $sql = substr_replace($sql," FROM {$tableName}", strlen($sql) - 3);
 
-        if (count($where)) {
-            $sql .= ' WHERE 1';
-
-            foreach ($where as $condition)
-                $sql .= ' ' . $condition['operator'] . ' ' . $condition['condition'];
-        }
+        $sql .= self::generateConditions('WHERE', $where);
 
         if (strlen($group))
             $sql .= ' GROUP BY ' . $group;
 
-        if (count($having)) {
-            $sql .= ' HAVING 1';
-
-            foreach ($having as $condition)
-                $sql .= ' ' . $condition['operator'] . ' ' . $condition['condition'];
-        }
+        $sql .= self::generateConditions('HAVING', $having);
 
         if (strlen($order))
             $sql .= ' ORDER BY ' . $order;
@@ -112,10 +117,19 @@ class {{class_name}}
         return $sql;
     }
 
-    public static function generateUpdate(array $assignments, array $where, string $order = '', int $limit = 0){
-        $sql = 'UPDATE ' . self::$tableName . 'SET ';
+    public static function generateUpdate(array $assignments, array $where = [], string $order = '', int $limit = 0){
+        $sql = 'UPDATE ' . self::$tableName . ' SET ';
 
         foreach ($assignments as $assignment)
-            $sql .= $assignment . '';
+            $sql .= $assignment . ', ';
+
+        $sql = substr($sql, 0, strlen($sql) - 3) . self::generateConditions('WHERE', $where);
+
+        if (strlen($order))
+            $sql .= ' ORDER BY ' . $order;
+
+        $sql .= sprintf(' LIMIT %d', $limit);
+
+        return $sql;
     }
 }
