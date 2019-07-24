@@ -6,7 +6,7 @@ spl_autoload_register(function ($className) {
     include str_replace('\\', '/', $className) . '.php';
 });
 
-$result = CurrentDeptEmp::getAll();
+$result = CurrentDeptEmp::get();
 
 var_dump($result[0]->getEmpNo());
 echo PHP_EOL;

@@ -23,9 +23,17 @@ class Connection {
      * @param string $className
      * @return array[Entity]
      */
-    public function getAll(string $sql, string $className) {
+    public function get(string $sql, string $className) {
         $stmt = $this->db->query($sql, PDO::FETCH_CLASS, $className);
         return $stmt->fetchAll();
+    }
+
+    /** Executes the sql and returns the numbers of rows affected
+     * @param $sql
+     * @return int
+     */
+    public function executeSql($sql) {
+        return $this->db->exec($sql);
     }
 
     /**

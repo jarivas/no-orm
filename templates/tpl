@@ -47,6 +47,9 @@ class {{class_name}}
         return $sql;
     }
 
+
+    // SQL GENERATORS
+
     public static function generateSelect(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : string
     {
         $tableName = self::$tableName;
@@ -70,31 +73,6 @@ class {{class_name}}
         $sql .= sprintf(' LIMIT %d OFFSET %d', $limit, $offset);
 
         return $sql;
-    }
-
-    public static function getAll(array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
-    {
-        return self::getAllProjection(array_values(self::$pascalCasedProperties), $where, $group, $having, $order, $limit, $offset);
-    }
-
-    public static function getAllProjection(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
-    {
-        $sql = self::generateSelect(self::generateProjection($projection), $where, $group, $having, $order, $limit, $offset);
-        $connection = Connection::getInstance();
-
-        return $connection->getAll($sql, __CLASS__);
-    }
-
-    public static function generateProjection($projection) : array
-    {
-        $result = [];
-
-        foreach ($projection as $col) {
-            $alias = self::$snakeCasedProperties[$col];
-            $result[] = "$col as $alias";
-        }
-
-        return $result;
     }
 
     public static function generateInsert(array $columns, array $values, string $onDuplicateKeyUpdate = '') : string
@@ -143,5 +121,60 @@ class {{class_name}}
         $sql .= sprintf(' LIMIT %d', $limit);
 
         return $sql;
+    }
+
+
+    // ACTUAL DB ACTIONS
+    public static function get(array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
+    {
+        return self::getProjection(array_values(self::$pascalCasedProperties), $where, $group, $having, $order, $limit, $offset);
+    }
+
+    public static function getProjection(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
+    {
+        $sql = self::generateSelect(self::generateProjection($projection), $where, $group, $having, $order, $limit, $offset);
+
+        $connection = Connection::getInstance();
+
+        return $connection->get($sql, __CLASS__);
+    }
+
+    public static function generateProjection($projection) : array
+    {
+        $result = [];
+
+        foreach ($projection as $col) {
+            $alias = self::$snakeCasedProperties[$col];
+            $result[] = "$col as $alias";
+        }
+
+        return $result;
+    }
+
+    public static function insertOne(array $columns, array $values, string $onDuplicateKeyUpdate = '') : int
+    {
+        $sql = self::generateInsert($columns, $values, $onDuplicateKeyUpdate);
+
+        $connection = Connection::getInstance();
+
+        return $connection->executeSql($sql);
+    }
+
+    public static function update(array $assignments, array $where = [], string $order = '', int $limit = 0) : bool
+    {
+        $sql = self::generateUpdate($assignments, $where, $order, $limit);
+
+        $connection = Connection::getInstance();
+
+        return ($connection->executeSql($sql) > 0);
+    }
+
+    public static function delete(array $where = [], string $order = '', int $limit = 0): bool
+    {
+        $sql = self::generateDelete($where, $order, $limit);
+
+        $connection = Connection::getInstance();
+
+        return ($connection->executeSql($sql) > 0);
     }
 }
