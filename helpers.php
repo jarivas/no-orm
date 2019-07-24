@@ -21,6 +21,7 @@ function generateEntities($metadata)
         $constants = '';
         $classDescription = "/**\n * Class $fileName\n * @package Entity\n";
         $pascalCasedProperties = "[\n";
+        $snakeCasedProperties = "[\n";
 
         foreach ($desc as $colData) {
             $colName = $colData['Field'];
@@ -33,13 +34,15 @@ function generateEntities($metadata)
             $classDescription .= " * @method {$type} get{$pascalProperty}()\n * @method void set{$pascalProperty}({$type} \$value)\n";
 
             $pascalCasedProperties .= "    '{$pascalProperty}' => '{$colName}',\n";
+            $snakeCasedProperties .= "    '{$colName}' => '{$pascalProperty}',\n";
         }
 
         $classDescription .= ' */';
         $pascalCasedProperties = substr_replace($pascalCasedProperties, '];', strlen($pascalCasedProperties) - 2, 1);
+        $snakeCasedProperties = substr_replace($snakeCasedProperties, '];', strlen($snakeCasedProperties) - 2, 1);
 
-        $tpl = str_replace(['{{class_description}}', '{{constants}}', '{{pascal_properties}}', '{{properties}}'],
-            [$classDescription, $constants, $pascalCasedProperties], $tpl);
+        $tpl = str_replace(['{{class_description}}', '{{constants}}', '{{pascal_properties}}', '{{snake_properties}}'],
+            [$classDescription, $constants, $pascalCasedProperties, $snakeCasedProperties], $tpl);
 
         file_put_contents('Entity/' . $fileName . '.php', $tpl);
         die;

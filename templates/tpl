@@ -8,11 +8,10 @@ class {{class_name}}
     protected static $tableName = '{{table_name}}';
 
 {{constants}}
-
     protected static $callAllowedTypes = ['set', 'get'];
 
     protected static $pascalCasedProperties = {{pascal_properties}}
-
+    protected static $snakeCasedProperties = {{snake_properties}}
     public function __call($name, $arguments)
     {
         $methodType = substr($name, 0 , 3);
@@ -31,17 +30,6 @@ class {{class_name}}
         $this->$property = $arguments[0];
 
         return $this;
-    }
-
-    public static function generateProjection() : array
-    {
-        $projection = [];
-
-        foreach (self::$pascalCasedProperties as $alias => $col)
-            $projection[] = "$col as $alias";
-
-
-        return $projection;
     }
 
     public static function generateSelect(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : string
@@ -81,15 +69,27 @@ class {{class_name}}
 
     public static function getAll(array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
     {
-        return self::getAllProjection(self::generateProjection(), $where, $group, $having, $order, $limit, $offset);
+        return self::getAllProjection(array_values(self::$pascalCasedProperties), $where, $group, $having, $order, $limit, $offset);
     }
 
     public static function getAllProjection(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
     {
-        $sql = self::generateSelect($projection, $where, $group, $having, $order, $limit, $offset);
+        $sql = self::generateSelect(self::generateProjection($projection), $where, $group, $having, $order, $limit, $offset);
         $connection = Connection::getInstance();
 
         return $connection->getAll($sql, __CLASS__);
+    }
+
+    public static function generateProjection($projection) : array
+    {
+        $result = [];
+
+        foreach ($projection as $col) {
+            $alias = self::$snakeCasedProperties[$col];
+            $result[] = "$col as $alias";
+        }
+
+        return $result;
     }
 
     public static function generateInsert(array $columns, array $values, string $onDuplicateKeyUpdate = '') : string
