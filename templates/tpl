@@ -132,4 +132,16 @@ class {{class_name}}
 
         return $sql;
     }
+
+    public static function generateDelete(array $where = [], string $order = '', int $limit = 0) : string
+    {
+        $sql = 'DELETE FROM ' . self::$tableName . self::generateConditions('WHERE', $where);
+
+        if (strlen($order))
+            $sql .= ' ORDER BY ' . $order;
+
+        $sql .= sprintf(' LIMIT %d', $limit);
+
+        return $sql;
+    }
 }
