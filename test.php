@@ -8,5 +8,7 @@ spl_autoload_register(function ($className) {
 
 $result = CurrentDeptEmp::getAll();
 
-var_dump($result);
+var_dump($result[0]->getEmpNo());
+echo PHP_EOL;
+var_dump($result[0]);
 die(PHP_EOL);
