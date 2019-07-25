@@ -8,7 +8,6 @@ class {{class_name}}
     protected static $tableName = '{{table_name}}';
 
 {{constants}}
-    protected static $callAllowedTypes = ['set', 'get'];
 
     protected static $pascalCasedProperties = {{pascal_properties}}
     protected static $snakeCasedProperties = {{snake_properties}}
@@ -17,7 +16,7 @@ class {{class_name}}
     {
         $methodType = substr($name, 0 , 3);
 
-        if(!in_array($methodType, self::$callAllowedTypes))
+        if(!in_array($methodType, Connection::$callAllowedTypes))
             throw new Exception('The method do not exists');
 
         $property = substr($name, 3);
@@ -33,113 +32,19 @@ class {{class_name}}
         return $this;
     }
 
-    protected static function generateConditions(string $type, array $conditions) : string
+    public static function get(array $projection = [], array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
     {
-        $sql = '';
+        if(!count($projection))
+            $projection = array_values(self::$pascalCasedProperties);
 
-        if (count($conditions)) {
-            $sql .= " $type 1";
-
-            foreach ($conditions as $condition)
-                $sql .= ' ' . $condition['operator'] . ' ' . $condition['condition'];
-        }
-
-        return $sql;
-    }
-
-
-    // SQL GENERATORS
-
-    public static function generateSelect(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : string
-    {
-        $tableName = self::$tableName;
-        $sql = 'SELECT ';
-
-        foreach ($projection as $col)
-            $sql .= $col . ', ';
-
-        $sql = substr_replace($sql," FROM {$tableName}", strlen($sql) - 3);
-
-        $sql .= self::generateConditions('WHERE', $where);
-
-        if (strlen($group))
-            $sql .= ' GROUP BY ' . $group;
-
-        $sql .= self::generateConditions('HAVING', $having);
-
-        if (strlen($order))
-            $sql .= ' ORDER BY ' . $order;
-
-        $sql .= sprintf(' LIMIT %d OFFSET %d', $limit, $offset);
-
-        return $sql;
-    }
-
-    public static function generateInsert(array $columns, array $values, string $onDuplicateKeyUpdate = '') : string
-    {
-        $sql = sprintf('INSERT INTO %s (', self::$tableName);
-
-        foreach ($columns as $column)
-            $sql .= $column . ', ';
-
-        $sql = substr_replace($sql,") VALUES (", strlen($sql) - 3);
-
-        foreach ($values as $value)
-            $sql .= sprintf('"%s", ', $value);
-
-        $sql = substr_replace($sql,")", strlen($sql) - 3);
-
-        if(strlen($onDuplicateKeyUpdate))
-            $sql .= 'ON DUPLICATE KEY UPDATE '. $onDuplicateKeyUpdate;
-
-        return $sql;
-    }
-
-    public static function generateUpdate(array $assignments, array $where = [], string $order = '', int $limit = 0){
-        $sql = 'UPDATE ' . self::$tableName . ' SET ';
-
-        foreach ($assignments as $assignment)
-            $sql .= $assignment . ', ';
-
-        $sql = substr($sql, 0, strlen($sql) - 3) . self::generateConditions('WHERE', $where);
-
-        if (strlen($order))
-            $sql .= ' ORDER BY ' . $order;
-
-        $sql .= sprintf(' LIMIT %d', $limit);
-
-        return $sql;
-    }
-
-    public static function generateDelete(array $where = [], string $order = '', int $limit = 0) : string
-    {
-        $sql = 'DELETE FROM ' . self::$tableName . self::generateConditions('WHERE', $where);
-
-        if (strlen($order))
-            $sql .= ' ORDER BY ' . $order;
-
-        $sql .= sprintf(' LIMIT %d', $limit);
-
-        return $sql;
-    }
-
-
-    // ACTUAL DB ACTIONS
-    public static function get(array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
-    {
-        return self::getProjection(array_values(self::$pascalCasedProperties), $where, $group, $having, $order, $limit, $offset);
-    }
-
-    public static function getProjection(array $projection, array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
-    {
-        $sql = self::generateSelect(self::generateProjection($projection), $where, $group, $having, $order, $limit, $offset);
+        $sql = Connection::generateSelect(self::$tableName, self::generateProjection($projection), $where, $group, $having, $order, $limit, $offset);
 
         $connection = Connection::getInstance();
 
         return $connection->get($sql, __CLASS__);
     }
 
-    public static function generateProjection($projection) : array
+    protected static function generateProjection($projection) : array
     {
         $result = [];
 
@@ -153,7 +58,7 @@ class {{class_name}}
 
     public static function insertOne(array $columns, array $values, string $onDuplicateKeyUpdate = '') : int
     {
-        $sql = self::generateInsert($columns, $values, $onDuplicateKeyUpdate);
+        $sql = Connection::generateInsert(self::$tableName, $columns, $values, $onDuplicateKeyUpdate);
 
         $connection = Connection::getInstance();
 
@@ -162,7 +67,7 @@ class {{class_name}}
 
     public static function update(array $assignments, array $where = [], string $order = '', int $limit = 0) : bool
     {
-        $sql = self::generateUpdate($assignments, $where, $order, $limit);
+        $sql = Connection::generateUpdate(self::$tableName, $assignments, $where, $order, $limit);
 
         $connection = Connection::getInstance();
 
@@ -171,7 +76,7 @@ class {{class_name}}
 
     public static function delete(array $where = [], string $order = '', int $limit = 0): bool
     {
-        $sql = self::generateDelete($where, $order, $limit);
+        $sql = Connection::generateDelete(self::$tableName, $where, $order, $limit);
 
         $connection = Connection::getInstance();
 
