@@ -6,32 +6,7 @@ class SQLGenerator
 {
     const PROJECTION_FORMAT = '%s.%s as %s';
     const PROJECTION_FORMAT_EXTENDED = '%s.%s as %s_%s';
-
     const ON_CALL_ALLOWED_METHODS = ['set', 'get'];
-
-    public static function generateProjection(string $tableName, array $columnsInfo, array $projection = [], bool $useExtended = true): array
-    {
-        $result = [];
-
-        if (count($projection)) {
-
-            foreach ($projection as $col) {
-                $alias = $columnsInfo[$col];
-                $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
-            }
-
-            return $result;
-        }
-
-        foreach ($columnsInfo as $col => $alias) {
-            if ($useExtended)
-                $result[] = sprintf(self::PROJECTION_FORMAT_EXTENDED, $tableName, $col, strtoupper($tableName), $alias);
-            else
-                $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
-        }
-
-        return $result;
-    }
 
     protected static function generateJoins(array $joins): string
     {
@@ -59,6 +34,51 @@ class SQLGenerator
         return $sql;
     }
 
+    /**
+     * It is used to uniform the generateSelect $projection field
+     * @param string $tableName
+     * @param array $columnsInfo
+     * @param array $projection
+     * @param bool $useExtended
+     * @return array
+     */
+    public static function generateProjection(string $tableName, array $columnsInfo, array $projection = [], bool $useExtended = true): array
+    {
+        $result = [];
+
+        if (count($projection)) {
+
+            foreach ($projection as $col) {
+                $alias = $columnsInfo[$col];
+                $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
+            }
+
+            return $result;
+        }
+
+        foreach ($columnsInfo as $col => $alias) {
+            if ($useExtended)
+                $result[] = sprintf(self::PROJECTION_FORMAT_EXTENDED, $tableName, $col, strtoupper($tableName), $alias);
+            else
+                $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Generates sql ready to use
+     * @param string $tableName
+     * @param array $projection
+     * @param array $joins
+     * @param array $where
+     * @param string $group
+     * @param array $having
+     * @param string $order
+     * @param int $limit
+     * @param int $offset
+     * @return string
+     */
     public static function generateSelect(string $tableName, array $projection, array $joins = [], array $where = [], string $group = '',
                                           array $having = [], string $order = '', int $limit = 1000, int $offset = 0): string
     {
@@ -86,6 +106,14 @@ class SQLGenerator
         return $sql;
     }
 
+    /**
+     * Generates sql ready to use
+     * @param string $tableName
+     * @param array $columns
+     * @param array $values
+     * @param string $onDuplicateKeyUpdate
+     * @return string
+     */
     public static function generateInsert(string $tableName, array $columns, array $values, string $onDuplicateKeyUpdate = ''): string
     {
         $sql = sprintf('INSERT INTO %s (', $tableName);
@@ -93,19 +121,28 @@ class SQLGenerator
         foreach ($columns as $column)
             $sql .= $column . ', ';
 
-        $sql = substr_replace($sql, ") VALUES (", strlen($sql) - 3);
+        $sql = substr_replace($sql, ") VALUES (", strlen($sql) - 2);
 
         foreach ($values as $value)
             $sql .= sprintf('"%s", ', $value);
 
-        $sql = substr_replace($sql, ")", strlen($sql) - 3);
+        $sql = substr_replace($sql, ")", strlen($sql) - 2);
 
         if (strlen($onDuplicateKeyUpdate))
-            $sql .= 'ON DUPLICATE KEY UPDATE ' . $onDuplicateKeyUpdate;
+            $sql .= ' ON DUPLICATE KEY UPDATE ' . $onDuplicateKeyUpdate;
 
         return $sql;
     }
 
+    /**
+     * Generates sql ready to use
+     * @param string $tableName
+     * @param array $assignments
+     * @param array $where
+     * @param string $order
+     * @param int $limit
+     * @return string
+     */
     public static function generateUpdate(string $tableName, array $assignments, array $where = [], string $order = '', int $limit = 0)
     {
         $sql = 'UPDATE ' . $tableName . ' SET ';
@@ -113,16 +150,25 @@ class SQLGenerator
         foreach ($assignments as $assignment)
             $sql .= $assignment . ', ';
 
-        $sql = substr($sql, 0, strlen($sql) - 3) . self::generateConditions('WHERE', $where);
+        $sql = substr($sql, 0, strlen($sql) - 2) . self::generateConditions('WHERE', $where);
 
         if (strlen($order))
             $sql .= ' ORDER BY ' . $order;
 
-        $sql .= sprintf(' LIMIT %d', $limit);
+        if ($limit)
+            $sql .= sprintf(' LIMIT %d', $limit);
 
         return $sql;
     }
 
+    /**
+     * Generates sql ready to use
+     * @param string $tableName
+     * @param array $where
+     * @param string $order
+     * @param int $limit
+     * @return string
+     */
     public static function generateDelete(string $tableName, array $where = [], string $order = '', int $limit = 0): string
     {
         $sql = 'DELETE FROM ' . $tableName . self::generateConditions('WHERE', $where);
@@ -130,7 +176,8 @@ class SQLGenerator
         if (strlen($order))
             $sql .= ' ORDER BY ' . $order;
 
-        $sql .= sprintf(' LIMIT %d', $limit);
+        if ($limit)
+            $sql .= sprintf(' LIMIT %d', $limit);
 
         return $sql;
     }

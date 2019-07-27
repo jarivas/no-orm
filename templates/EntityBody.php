@@ -7,6 +7,14 @@ use Exception;
 
 trait EntityBody
 {
+    /**
+     * PHP Magic method, is triggered when invoking inaccessible methods in an object context.
+     * Mimics the getXXX and setXXX methods
+     * @param $name
+     * @param $arguments
+     * @return $this
+     * @throws Exception
+     */
     public function __call($name, $arguments)
     {
         $methodType = substr($name, 0 , 3);
@@ -27,11 +35,26 @@ trait EntityBody
         return $this;
     }
 
+    /**
+     * Helps to generate and prepare the field $projection of the get method
+     * @return array
+     */
     public static function getColumnsInfo(): array
     {
         return self::$snakeCasedProperties;
     }
 
+    /**
+     * Retrieves an array of Entities
+     * @param array $projection
+     * @param array $where
+     * @param string $group
+     * @param array $having
+     * @param string $order
+     * @param int $limit
+     * @param int $offset
+     * @return array[Entity]
+     */
     public static function get(array $projection = [], array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
     {
         $joins = [];
@@ -55,6 +78,13 @@ trait EntityBody
         return $connection->get($sql, __CLASS__);
     }
 
+    /**
+     * Inserts a new row in the table
+     * @param array $columns
+     * @param array $values
+     * @param string $onDuplicateKeyUpdate
+     * @return int
+     */
     public static function insertOne(array $columns, array $values, string $onDuplicateKeyUpdate = '') : int
     {
         $sql = SQLGenerator::generateInsert(self::$tableName, $columns, $values, $onDuplicateKeyUpdate);
@@ -64,6 +94,14 @@ trait EntityBody
         return $connection->executeSql($sql);
     }
 
+    /**
+     * Updates one or more rows in the table
+     * @param array $assignments
+     * @param array $where
+     * @param string $order
+     * @param int $limit
+     * @return bool
+     */
     public static function update(array $assignments, array $where = [], string $order = '', int $limit = 0) : bool
     {
         $sql = SQLGenerator::generateUpdate(self::$tableName, $assignments, $where, $order, $limit);
@@ -73,6 +111,13 @@ trait EntityBody
         return ($connection->executeSql($sql) > 0);
     }
 
+    /**
+     * Deletes one or more rows in the table
+     * @param array $where
+     * @param string $order
+     * @param int $limit
+     * @return bool
+     */
     public static function delete(array $where = [], string $order = '', int $limit = 0): bool
     {
         $sql = SQLGenerator::generateDelete(self::$tableName, $where, $order, $limit);
