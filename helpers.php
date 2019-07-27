@@ -79,7 +79,7 @@ function extractRelations($create, $tableName)
 
     if (count($matches)) {
         foreach ($matches as $r) {
-            $columnsInfo = 'Entity\\' . toPascalCase($r[2]) . '::getColumnsInfo';
+            $columnsInfo = '\\Entity\\' . toPascalCase($r[2]) . '::getColumnsInfo';
             $relations .= "['tableName' => '{$r[2]}', 'columnsInfo' => '{$columnsInfo}', 'onCol1' => '{$tableName}.{$r[1]}', 'onCol2' => '{$r[2]}.{$r[3]}'],\n";
         }
 
