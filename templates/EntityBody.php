@@ -17,9 +17,9 @@ trait EntityBody
      */
     public function __call($name, $arguments)
     {
-        $methodType = substr($name, 0 , 3);
+        $methodType = substr($name, 0, 3);
 
-        if(!in_array($methodType, SQLGenerator::ON_CALL_ALLOWED_METHODS))
+        if (!in_array($methodType, SQLGenerator::ON_CALL_ALLOWED_METHODS))
             throw new Exception('The method do not exists');
 
         $property = substr($name, 3);
@@ -55,15 +55,15 @@ trait EntityBody
      * @param int $offset
      * @return array[Entity]
      */
-    public static function get(array $projection = [], array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
+    public static function get(array $projection = [], array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0): array
     {
         $joins = [];
 
-        if(!count($projection))
+        if (!count($projection))
             $projection = SQLGenerator::generateProjection(self::$tableName, self::getColumnsInfo(), $projection, false);
 
-        if(count(self::$relations)) {
-            foreach(self::$relations as $relation) {
+        if (count(self::$relations)) {
+            foreach (self::$relations as $relation) {
                 $relationProjection = SQLGenerator::generateProjection($relation['tableName'], $relation['columnsInfo']());
                 $projection = array_merge($relationProjection, $projection);
 
@@ -85,7 +85,7 @@ trait EntityBody
      * @param string $onDuplicateKeyUpdate
      * @return int
      */
-    public static function insertOne(array $columns, array $values, string $onDuplicateKeyUpdate = '') : int
+    public static function insertOne(array $columns, array $values, string $onDuplicateKeyUpdate = ''): int
     {
         $sql = SQLGenerator::generateInsert(self::$tableName, $columns, $values, $onDuplicateKeyUpdate);
 
@@ -102,7 +102,7 @@ trait EntityBody
      * @param int $limit
      * @return bool
      */
-    public static function update(array $assignments, array $where = [], string $order = '', int $limit = 0) : bool
+    public static function update(array $assignments, array $where = [], string $order = '', int $limit = 0): bool
     {
         $sql = SQLGenerator::generateUpdate(self::$tableName, $assignments, $where, $order, $limit);
 
