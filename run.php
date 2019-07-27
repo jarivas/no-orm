@@ -15,6 +15,7 @@ $dbData = $config['db'];
 $conn = new PDO("mysql:host={$dbData['host']};dbname={$dbData['dbname']}", $dbData['username'], $dbData['password']);
 
 copy(SQL_GENERATOR, SQL_GENERATOR_TARGET);
+copy(BODY_TRAIT, BODY_TRAIT_TARGET);
 
 generateConnection($dbData);
 

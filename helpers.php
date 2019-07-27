@@ -3,6 +3,8 @@
 DEFINE('CONFIG_FILE', 'config.ini');
 DEFINE('SQL_GENERATOR', 'templates/SQLGenerator.php');
 DEFINE('SQL_GENERATOR_TARGET', 'Entity/SQLGenerator.php');
+DEFINE('BODY_TRAIT', 'templates/EntityBody.php');
+DEFINE('BODY_TRAIT_TARGET', 'Entity/EntityBody.php');
 DEFINE('TPL_CONNECTION', 'templates/connection');
 DEFINE('TPL_CONNECTION_TARGET', 'Entity/Connection.php');
 DEFINE('TPL_FILE', 'templates/tpl');
