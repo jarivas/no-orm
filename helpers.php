@@ -71,18 +71,19 @@ function getTypeFromMysql($type)
     return 'string';
 }
 
-function extractRelations($create, $tableName){
+function extractRelations($create, $tableName)
+{
     $relations = "[\n";
     $matches = [];
     preg_match_all(RELATION_PATTERN, $create, $matches, PREG_SET_ORDER, 0);
 
-    if(count($matches)) {
+    if (count($matches)) {
         foreach ($matches as $r) {
-            $columnsInfo = 'Entity\\'.toPascalCase($r[2]) .'::getColumnsInfo';
-            $relations .=  "['tableName' => '{$r[2]}', 'columnsInfo' => '{$columnsInfo}', 'onCol1' => '{$tableName}.{$r[1]}', 'onCol2' => '{$r[2]}.{$r[3]}'],\n";
+            $columnsInfo = 'Entity\\' . toPascalCase($r[2]) . '::getColumnsInfo';
+            $relations .= "['tableName' => '{$r[2]}', 'columnsInfo' => '{$columnsInfo}', 'onCol1' => '{$tableName}.{$r[1]}', 'onCol2' => '{$r[2]}.{$r[3]}'],\n";
         }
 
-        return substr_replace($relations,'];', strlen($relations) - 2, 1);
+        return substr_replace($relations, '];', strlen($relations) - 2, 1);
     }
 
     return '[];';

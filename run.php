@@ -22,7 +22,7 @@ $tables = $conn->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
 $descs = [];
 $creates = [];
 
-foreach ($tables as $table){
+foreach ($tables as $table) {
     $descs[$table] = $conn->query("DESC $table")->fetchAll(PDO::FETCH_ASSOC);
     $creates[$table] = $conn->query("SHOW CREATE TABLE $table")->fetch(PDO::FETCH_NUM)[1];
 }

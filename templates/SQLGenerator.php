@@ -13,7 +13,7 @@ class SQLGenerator
     {
         $result = [];
 
-        if(count($projection)) {
+        if (count($projection)) {
 
             foreach ($projection as $col) {
                 $alias = $columnsInfo[$col];
@@ -23,8 +23,8 @@ class SQLGenerator
             return $result;
         }
 
-        foreach ($columnsInfo as $col => $alias){
-            if($useExtended)
+        foreach ($columnsInfo as $col => $alias) {
+            if ($useExtended)
                 $result[] = sprintf(self::PROJECTION_FORMAT_EXTENDED, $tableName, $col, strtoupper($tableName), $alias);
             else
                 $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
