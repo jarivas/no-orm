@@ -3,6 +3,7 @@
 
 namespace Entity;
 
+use Exception;
 
 trait EntityBody
 {

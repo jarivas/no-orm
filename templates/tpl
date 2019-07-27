@@ -2,8 +2,6 @@
 
 namespace Entity;
 
-use Exception;
-
 {{class_description}}
 class {{class_name}}
 {
