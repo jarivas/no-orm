@@ -1,9 +1,12 @@
 <?php
 
 DEFINE('CONFIG_FILE', 'config.ini');
+DEFINE('SQL_GENERATOR', 'templates/SQLGenerator.php');
+DEFINE('SQL_GENERATOR_TARGET', 'Entity/SQLGenerator.php');
 DEFINE('TPL_CONNECTION', 'templates/connection');
 DEFINE('TPL_CONNECTION_TARGET', 'Entity/Connection.php');
 DEFINE('TPL_FILE', 'templates/tpl');
+DEFINE('RELATION_PATTERN', '/FOREIGN KEY.*\(`(.*)`\).*REFERENCES.*`(.*)`.*\(`(.*)`\)/m');
 
 function generateConnection($dbData)
 {
@@ -13,9 +16,9 @@ function generateConnection($dbData)
     file_put_contents(TPL_CONNECTION_TARGET, $content);
 }
 
-function generateEntities($metadata)
+function generateEntities($descs, $creates)
 {
-    foreach ($metadata as $table => $desc) {
+    foreach ($descs as $table => $desc) {
         $fileName = toPascalCase($table);
         $tpl = str_replace(['{{table_name}}', '{{class_name}}'], [$table, $fileName], TPL_CONTENT);
         $constants = '';
@@ -41,11 +44,10 @@ function generateEntities($metadata)
         $pascalCasedProperties = substr_replace($pascalCasedProperties, '];', strlen($pascalCasedProperties) - 2, 1);
         $snakeCasedProperties = substr_replace($snakeCasedProperties, '];', strlen($snakeCasedProperties) - 2, 1);
 
-        $tpl = str_replace(['{{class_description}}', '{{constants}}', '{{pascal_properties}}', '{{snake_properties}}'],
-            [$classDescription, $constants, $pascalCasedProperties, $snakeCasedProperties], $tpl);
+        $tpl = str_replace(['{{class_description}}', '{{constants}}', '{{pascal_properties}}', '{{snake_properties}}', '{{relations}}'],
+            [$classDescription, $constants, $pascalCasedProperties, $snakeCasedProperties, extractRelations($creates[$table], $table)], $tpl);
 
         file_put_contents('Entity/' . $fileName . '.php', $tpl);
-        die;
     }
 }
 
@@ -67,4 +69,22 @@ function getTypeFromMysql($type)
     if (strpos('time', $type)) return 'datetime';
 
     return 'string';
+}
+
+function extractRelations($create, $tableName){
+    $relations = "[\n";
+    $matches = [];
+    preg_match_all(RELATION_PATTERN, $create, $matches, PREG_SET_ORDER, 0);
+
+    if(count($matches)) {
+        foreach ($matches as $r) {
+            $columnsInfo = 'Entity\\'.toPascalCase($r[2]) .'::getColumnsInfo';
+            $relations .=  "['tableName' => '{$r[2]}', 'columnsInfo' => '{$columnsInfo}', 'onCol1' => '{$tableName}.{$r[1]}', 'onCol2' => '{$r[2]}.{$r[3]}'],\n";
+        }
+
+        return substr_replace($relations,'];', strlen($relations) - 2, 1);
+    }
+
+    return '[];';
+
 }

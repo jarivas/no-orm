@@ -2,6 +2,8 @@
 
 namespace Entity;
 
+use Exception;
+
 {{class_description}}
 class {{class_name}}
 {
@@ -11,12 +13,13 @@ class {{class_name}}
 
     protected static $pascalCasedProperties = {{pascal_properties}}
     protected static $snakeCasedProperties = {{snake_properties}}
+    protected static $relations = {{relations}}
 
     public function __call($name, $arguments)
     {
         $methodType = substr($name, 0 , 3);
 
-        if(!in_array($methodType, Connection::$callAllowedTypes))
+        if(!in_array($methodType, SQLGenerator::ON_CALL_ALLOWED_METHODS))
             throw new Exception('The method do not exists');
 
         $property = substr($name, 3);
@@ -32,33 +35,37 @@ class {{class_name}}
         return $this;
     }
 
+    public static function getColumnsInfo(): array
+    {
+        return self::$snakeCasedProperties;
+    }
+
     public static function get(array $projection = [], array $where = [], string $group = '', array $having = [], string $order = '', int $limit = 1000, int $offset = 0) : array
     {
-        if(!count($projection))
-            $projection = array_values(self::$pascalCasedProperties);
+        $joins = [];
 
-        $sql = Connection::generateSelect(self::$tableName, self::generateProjection($projection), $where, $group, $having, $order, $limit, $offset);
+        if(!count($projection))
+            $projection = SQLGenerator::generateProjection(self::$tableName, self::getColumnsInfo());
+
+        if(count(self::$relations)) {
+            foreach(self::$relations as $relation) {
+                $relationProjection = SQLGenerator::generateProjection($relation['tableName'], $relation['columnsInfo']());
+                $projection = array_merge($relationProjection, $projection);
+
+                $joins[] = ['type' => 'LEFT', 'tableName' => $relation['tableName'], 'onCol1' => $relation['onCol1'], 'onCol2' => $relation['onCol2']];
+            }
+        }
+
+        $sql = SQLGenerator::generateSelect(self::$tableName, $projection, $joins, $where, $group, $having, $order, $limit, $offset);
 
         $connection = Connection::getInstance();
 
         return $connection->get($sql, __CLASS__);
     }
 
-    protected static function generateProjection($projection) : array
-    {
-        $result = [];
-
-        foreach ($projection as $col) {
-            $alias = self::$snakeCasedProperties[$col];
-            $result[] = "$col as $alias";
-        }
-
-        return $result;
-    }
-
     public static function insertOne(array $columns, array $values, string $onDuplicateKeyUpdate = '') : int
     {
-        $sql = Connection::generateInsert(self::$tableName, $columns, $values, $onDuplicateKeyUpdate);
+        $sql = SQLGenerator::generateInsert(self::$tableName, $columns, $values, $onDuplicateKeyUpdate);
 
         $connection = Connection::getInstance();
 
@@ -67,7 +74,7 @@ class {{class_name}}
 
     public static function update(array $assignments, array $where = [], string $order = '', int $limit = 0) : bool
     {
-        $sql = Connection::generateUpdate(self::$tableName, $assignments, $where, $order, $limit);
+        $sql = SQLGenerator::generateUpdate(self::$tableName, $assignments, $where, $order, $limit);
 
         $connection = Connection::getInstance();
 
@@ -76,7 +83,7 @@ class {{class_name}}
 
     public static function delete(array $where = [], string $order = '', int $limit = 0): bool
     {
-        $sql = Connection::generateDelete(self::$tableName, $where, $order, $limit);
+        $sql = SQLGenerator::generateDelete(self::$tableName, $where, $order, $limit);
 
         $connection = Connection::getInstance();
 
