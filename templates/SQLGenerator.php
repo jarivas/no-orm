@@ -5,10 +5,11 @@ namespace Entity;
 class SQLGenerator
 {
     const PROJECTION_FORMAT = '%s.%s as %s';
+    const PROJECTION_FORMAT_EXTENDED = '%s.%s as %s_%s';
 
     const ON_CALL_ALLOWED_METHODS = ['set', 'get'];
 
-    public static function generateProjection(string $tableName, array $columnsInfo, array $projection = []): array
+    public static function generateProjection(string $tableName, array $columnsInfo, array $projection = [], bool $useExtended = true): array
     {
         $result = [];
 
@@ -22,8 +23,12 @@ class SQLGenerator
             return $result;
         }
 
-        foreach ($columnsInfo as $col => $alias)
-            $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
+        foreach ($columnsInfo as $col => $alias){
+            if($useExtended)
+                $result[] = sprintf(self::PROJECTION_FORMAT_EXTENDED, $tableName, $col, strtoupper($tableName), $alias);
+            else
+                $result[] = sprintf(self::PROJECTION_FORMAT, $tableName, $col, $alias);
+        }
 
         return $result;
     }

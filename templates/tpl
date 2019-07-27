@@ -45,7 +45,7 @@ class {{class_name}}
         $joins = [];
 
         if(!count($projection))
-            $projection = SQLGenerator::generateProjection(self::$tableName, self::getColumnsInfo());
+            $projection = SQLGenerator::generateProjection(self::$tableName, self::getColumnsInfo(), $projection, false);
 
         if(count(self::$relations)) {
             foreach(self::$relations as $relation) {
