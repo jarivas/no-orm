@@ -87,7 +87,7 @@ class SQLGenerator
         foreach ($projection as $col)
             $sql .= $col . ', ';
 
-        $sql = substr_replace($sql, " FROM {$tableName}", strlen($sql) - 3);
+        $sql = substr_replace($sql, " FROM {$tableName}", strlen($sql) - 2);
 
         $sql .= self::generateJoins($joins);
 
