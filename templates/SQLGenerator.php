@@ -6,7 +6,6 @@ class SQLGenerator
 {
     const PROJECTION_FORMAT = '%s.%s as %s';
     const PROJECTION_FORMAT_EXTENDED = '%s.%s as %s_%s';
-    const ON_CALL_ALLOWED_METHODS = ['set', 'get'];
 
     protected static function generateJoins(array $joins): string
     {

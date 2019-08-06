@@ -36,7 +36,7 @@ function generateEntities($descs, $creates)
 
             $constants .= "    const {$constantName} = '{$colName}';\n";
 
-            $classDescription .= " * @method {$type} get{$pascalProperty}()\n * @method void set{$pascalProperty}({$type} \$value)\n";
+            $classDescription .= " * @method {$type} get{$pascalProperty}()\n";
 
             $pascalCasedProperties .= "    '{$pascalProperty}' => '{$colName}',\n";
             $snakeCasedProperties .= "    '{$colName}' => '{$pascalProperty}',\n";

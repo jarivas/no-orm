@@ -9,7 +9,7 @@ trait EntityBody
 {
     /**
      * PHP Magic method, is triggered when invoking inaccessible methods in an object context.
-     * Mimics the getXXX and setXXX methods
+     * Mimics the getXXX methods
      * @param $name
      * @param $arguments
      * @return $this
@@ -19,7 +19,7 @@ trait EntityBody
     {
         $methodType = substr($name, 0, 3);
 
-        if (!in_array($methodType, SQLGenerator::ON_CALL_ALLOWED_METHODS))
+        if ($methodType != 'get')
             throw new Exception('The method do not exists');
 
         $property = substr($name, 3);
@@ -27,12 +27,7 @@ trait EntityBody
         if (empty(self::$pascalCasedProperties[$property]))
             throw new Exception("The property {$property} you are trying to access do not exists");
 
-
-        if ($methodType === 'get') return $this->$property;
-
-        $this->$property = $arguments[0];
-
-        return $this;
+        return $this->$property;
     }
 
     /**
