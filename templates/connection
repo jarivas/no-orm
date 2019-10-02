@@ -29,10 +29,10 @@ class Connection {
     }
 
     /** Executes the sql and returns the numbers of rows affected
-     * @param $sql
+     * @param  string $sql
      * @return int
      */
-    public function executeSql($sql) {
+    public function executeSql(string $sql) {
         return $this->db->exec($sql);
     }
 
@@ -40,7 +40,7 @@ class Connection {
      * Limit the connections created to one
      * @return Connection|null
      */
-    public static function getInstance()
+    public static function getInstance() : ?Connection
     {
         if (self::$instance == null) self::$instance = new self();
 
