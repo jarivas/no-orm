@@ -5,14 +5,22 @@ A simple and light SQL lib that you were needing it and not knowing
 - Requires very basic Mysql knowledge
 - No obscure code
 - Pascal cased getter and setters
-- Columns are constants
+- Column names as constants
 - Handles relationships automatically
 
 ## Getting Started
+- `composer require jarivas/no-orm`
+- $host is the mysql host
+- $dbname schema name where read tables to generate helper classes
+- $username mysql user
+- $password mysql password
+- $targetFolder where in the file system you want the files to be located
+- $namespace, is a string with a standard php namespace, for example 'Db\\Book'
+
 ### Generating classes
-- Edit and save config.ini.tpl as config.ini
-- `php run.php`
-- Copy the new Entity folder to your project
+- ```use NoOrm\EntityGenerator;```
+- ```$result = EntityGenerator::process($host, $dbname, $username, $password, $targetFolder, $namespace)```
+- My recommendation is create php command in order to generate files everytime you want
 
 ### Examples
 - I have been using this db example https://github.com/datacharmer/test_db
