@@ -1,6 +1,6 @@
 <?php
 
-namespace Entity;
+namespace {{namespace}};
 
 use PDO;
 
@@ -23,7 +23,8 @@ class Connection {
      * @param string $className
      * @return array[Entity]
      */
-    public function get(string $sql, string $className) {
+    public function get(string $sql, string $className)
+    {
         $stmt = $this->db->query($sql, PDO::FETCH_CLASS, $className);
         return $stmt->fetchAll();
     }
@@ -32,7 +33,8 @@ class Connection {
      * @param  string $sql
      * @return int
      */
-    public function executeSql(string $sql) {
+    public function executeSql(string $sql)
+    {
         return $this->db->exec($sql);
     }
 

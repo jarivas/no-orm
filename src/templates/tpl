@@ -1,11 +1,11 @@
 <?php
 
-namespace Entity;
+namespace {{namespace}};
 
 {{class_description}}
 class {{class_name}}
 {
-    protected static $tableName = '{{table_name}}';
+    protected static string $tableName = '{{table_name}}';
 
 {{constants}}
 

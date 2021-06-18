@@ -1,3 +1,7 @@
 .idea
 config.ini
 Entity
+/vendor/
+/tests/.phpunit.result.cache
+/tests/Book/
+/composer.lock

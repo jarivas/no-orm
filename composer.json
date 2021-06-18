@@ -1,0 +1,24 @@
+{
+  "name": "jarivas/no-orm",
+  "description": "A simple and light SQL lib",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jose A Rivas",
+      "email": "me@jarivas.work"
+    }
+  ],
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "NoOrm\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": { "NoOrm\\Tests\\": "tests/unit/" }
+  },
+  "require": {
+
+  }
+}

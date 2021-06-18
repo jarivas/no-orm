@@ -1,7 +1,6 @@
 <?php
 
-
-namespace Entity;
+namespace {{namespace}};
 
 use Exception;
 
