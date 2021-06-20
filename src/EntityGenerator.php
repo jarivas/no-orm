@@ -47,6 +47,10 @@ class EntityGenerator
             return 'Problem delete all files the folder where the classes will be placed';
         }
 
+        if (substr($targetFolder, -1) != DIRECTORY_SEPARATOR) {
+            $targetFolder .= DIRECTORY_SEPARATOR;
+        }
+
         self::$targetFolder = $targetFolder;
 
         return null;
@@ -101,7 +105,7 @@ class EntityGenerator
 
     protected static function setTemplatesFolder():bool
     {
-        self::$templatesFolder = __DIR__ . '/templates/';
+        self::$templatesFolder = __DIR__ . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
 
         return file_exists(self::$templatesFolder);
     }
