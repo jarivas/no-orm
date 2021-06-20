@@ -53,13 +53,15 @@ trait EntityBody
     {
         $joins = [];
 
-        if (!count($projection))
+        if ($mergeProjection = !count($projection))
             $projection = SQLGenerator::generateProjection(self::$tableName, self::getColumnsInfo(), $projection, false);
 
         if (count(self::$relations)) {
             foreach (self::$relations as $relation) {
-                $relationProjection = SQLGenerator::generateProjection($relation['tableName'], $relation['columnsInfo']());
-                $projection = array_merge($relationProjection, $projection);
+                if ($mergeProjection) {
+                    $relationProjection = SQLGenerator::generateProjection($relation['tableName'], $relation['columnsInfo']());
+                    $projection = array_merge($relationProjection, $projection);
+                }
 
                 $joins[] = ['type' => 'LEFT', 'tableName' => $relation['tableName'], 'onCol1' => $relation['onCol1'], 'onCol2' => $relation['onCol2']];
             }
